@@ -8,6 +8,8 @@ class ConfigSchema(BaseModel):
     correlation_window_s: float
     event_interval_s: float
     log_db_path: str
+    wifi_scan_interval_s: float
+    enable_windows_wifi_scan: bool
 
 
 class AlertSchema(BaseModel):
@@ -29,6 +31,18 @@ class EventSchema(BaseModel):
     source: str
 
 
+class WifiObservationSchema(BaseModel):
+    timestamp: float
+    timestamp_iso: str
+    ssid: str
+    bssid_hash: str
+    signal_percent: int
+    channel: Optional[int]
+    radio_type: Optional[str]
+    authentication: Optional[str]
+    source: str
+
+
 class StatusResponse(BaseModel):
     running: bool
     mode: str
@@ -36,6 +50,9 @@ class StatusResponse(BaseModel):
     num_drone_like: int
     last_alert: Optional[AlertSchema]
     risk_level: str
+    real_wifi_enabled: bool
+    num_wifi_observations: int
+    last_wifi_scan_ts: Optional[float]
     config: ConfigSchema
 
 

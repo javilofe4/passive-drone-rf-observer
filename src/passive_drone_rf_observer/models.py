@@ -14,6 +14,19 @@ class RFEvent:
 
 
 @dataclass
+class WifiObservation:
+    timestamp: float
+    ssid: str
+    bssid_hash: str
+    signal_percent: int
+    channel: Optional[int]
+    radio_type: Optional[str]
+    authentication: Optional[str]
+    source: str = "windows_wifi_scan"
+    notes: Optional[str] = None
+
+
+@dataclass
 class ClassificationResult:
     label: str
     score: float

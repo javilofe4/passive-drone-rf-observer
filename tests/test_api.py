@@ -48,3 +48,20 @@ def test_api_simulation_mode_change():
     assert response.status_code == 200
     assert response.json()["mode"] == "drone_activity"
     manager.set_mode("normal")
+
+
+def test_api_wifi_endpoints():
+    response = client.get("/api/wifi/observations")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+    scan_response = client.post("/api/wifi/scan")
+    assert scan_response.status_code == 200
+    assert isinstance(scan_response.json(), list)
+
+    clear_response = client.post("/api/wifi/clear")
+    assert clear_response.status_code == 200
+    assert "running" in clear_response.json()
+    response_after_clear = client.get("/api/wifi/observations")
+    assert response_after_clear.status_code == 200
+    assert response_after_clear.json() == []

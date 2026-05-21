@@ -11,8 +11,9 @@ from .agents.detector_agent import classify_event
 from .agents.legal_logging_agent import LegalLogger
 from .config import Config, load_config
 from .hardware import get_radio_hardware_profile
-from .models import RFEvent
+from .models import RFEvent, WifiObservation
 from .sources.simulated_rf_source import SimulatedRFSource
+from .sources.windows_wifi_scan_source import WindowsWifiScanSource
 
 
 class SimulationManager:
@@ -34,18 +35,22 @@ class SimulationManager:
         self.drone_like_events = 0
         self.events: Deque[Dict] = deque(maxlen=200)
         self.alerts: Deque[Dict] = deque(maxlen=100)
+        self.wifi_observations: Deque[Dict] = deque(maxlen=200)
+        self.last_wifi_scan_ts: Optional[float] = None
         self.last_alert_level = "none"
         self.risk_level = "none"
 
     def _init_simulation(self) -> None:
         self.profile = get_radio_hardware_profile(self.config.hardware_profile)
         self.source = SimulatedRFSource(source_name=self.profile.name, mode=self.mode)
+        self.wifi_source = WindowsWifiScanSource(salt=self.config.wifi_bssid_salt)
         self.correlator = Correlator(
             window_s=self.config.correlation_window_s,
             min_events=self.config.min_events_for_alert,
         )
         self.logger = LegalLogger()
         self._event_iter = self.source.iter_events()
+        self._next_wifi_scan_ts = time.time()
 
     def start(self) -> Dict:
         if self.running:
@@ -92,11 +97,16 @@ class SimulationManager:
                 "num_drone_like": self.drone_like_events,
                 "last_alert": latest_alert,
                 "risk_level": self.risk_level,
+                "real_wifi_enabled": self.config.enable_windows_wifi_scan,
+                "num_wifi_observations": len(self.wifi_observations),
+                "last_wifi_scan_ts": self.last_wifi_scan_ts,
                 "config": {
                     "detection_threshold": self.config.min_events_for_alert,
                     "correlation_window_s": self.config.correlation_window_s,
                     "event_interval_s": self.config.event_interval_s,
                     "log_db_path": self.logger.store.path,
+                    "wifi_scan_interval_s": self.config.wifi_scan_interval_s,
+                    "enable_windows_wifi_scan": self.config.enable_windows_wifi_scan,
                 },
             }
 
@@ -108,8 +118,46 @@ class SimulationManager:
         with self._lock:
             return list(self.alerts)
 
+    def get_wifi_observations(self) -> List[Dict]:
+        with self._lock:
+            return list(self.wifi_observations)
+
+    def clear_wifi_observations(self) -> Dict:
+        with self._lock:
+            self.wifi_observations.clear()
+            self.last_wifi_scan_ts = None
+        return self.get_status()
+
+    def scan_wifi(self) -> List[Dict]:
+        if not self.config.enable_windows_wifi_scan:
+            return []
+        observations = self.wifi_source.scan()
+        entries = []
+        for observation in observations:
+            entry = {
+                "timestamp": observation.timestamp,
+                "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(observation.timestamp)),
+                "ssid": observation.ssid,
+                "bssid_hash": observation.bssid_hash,
+                "signal_percent": observation.signal_percent,
+                "channel": observation.channel,
+                "radio_type": observation.radio_type,
+                "authentication": observation.authentication,
+                "source": observation.source,
+            }
+            entries.append(entry)
+        with self._lock:
+            self.wifi_observations = deque(entries, maxlen=200)
+            self.last_wifi_scan_ts = time.time()
+        return list(self.wifi_observations)
+
     def _run_loop(self) -> None:
         while not self._stop_event.is_set():
+            current_time = time.time()
+            if self.config.enable_windows_wifi_scan and current_time >= self._next_wifi_scan_ts:
+                self._next_wifi_scan_ts = current_time + self.config.wifi_scan_interval_s
+                self.scan_wifi()
+
             try:
                 event = next(self._event_iter)
             except StopIteration:

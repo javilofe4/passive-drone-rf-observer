@@ -3,7 +3,13 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
-from .schemas import AlertSchema, EventSchema, ModeRequest, StatusResponse
+from .schemas import (
+    AlertSchema,
+    EventSchema,
+    ModeRequest,
+    StatusResponse,
+    WifiObservationSchema,
+)
 from ..simulation import SimulationManager
 
 app = FastAPI(
@@ -47,6 +53,21 @@ def get_events() -> list[dict]:
 @app.get("/api/alerts", response_model=list[AlertSchema])
 def get_alerts() -> list[dict]:
     return manager.get_alerts()
+
+
+@app.get("/api/wifi/observations", response_model=list[WifiObservationSchema])
+def get_wifi_observations() -> list[dict]:
+    return manager.get_wifi_observations()
+
+
+@app.post("/api/wifi/scan", response_model=list[WifiObservationSchema])
+def scan_wifi() -> list[dict]:
+    return manager.scan_wifi()
+
+
+@app.post("/api/wifi/clear")
+def clear_wifi_observations() -> dict:
+    return manager.clear_wifi_observations()
 
 
 @app.post("/api/simulation/start")

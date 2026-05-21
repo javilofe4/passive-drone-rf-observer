@@ -65,6 +65,14 @@ Configuración por defecto:
 - `ENABLE_REMOTE_ID=false`
 - `ENABLE_WIFI_MONITOR=false`
 - `ENABLE_HACKRF=false`
+- `ENABLE_WINDOWS_WIFI_SCAN=false`
+
+Laptop-only real observations:
+- `ENABLE_WINDOWS_WIFI_SCAN=true` activa un escaneo de redes Wi-Fi visibles en Windows.
+- Solo se usan datos pasivos de red visibles (`netsh wlan show networks mode=bssid`).
+- No se captura tráfico, no se usa modo monitor, no se transmite, y no se decodifican comunicaciones privadas.
+- Los BSSID se almacenan como hashes SHA256, no se expone el BSSID en crudo.
+- Esta función es detección de redes Wi-Fi visibles, no un detector de drones confirmado.
 
 Ver `docs/hardware.md`, `docs/firmware.md` y `RX_ONLY.md`.
 

@@ -18,6 +18,9 @@ class Config:
     enable_remote_id: bool = _bool_env("ENABLE_REMOTE_ID", "false")
     enable_wifi_monitor: bool = _bool_env("ENABLE_WIFI_MONITOR", "false")
     enable_hackrf: bool = _bool_env("ENABLE_HACKRF", "false")
+    enable_windows_wifi_scan: bool = _bool_env("ENABLE_WINDOWS_WIFI_SCAN", "false")
+    wifi_scan_interval_s: float = float(os.getenv("WIFI_SCAN_INTERVAL_S", "5.0"))
+    wifi_bssid_salt: str = os.getenv("WIFI_BSSID_SALT", "local-dev-salt")
     hardware_profile: str = os.getenv("PDRFO_HARDWARE_PROFILE", "simulated")
 
 

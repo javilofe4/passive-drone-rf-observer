@@ -49,6 +49,32 @@
           <div class="status-item"><span>Ventana correlación:</span> <strong id="config-window">-</strong></div>
           <div class="status-item"><span>Intervalo simulación:</span> <strong id="config-interval">-</strong></div>
           <div class="status-item"><span>Ruta logs:</span> <strong id="config-log-path">-</strong></div>
+          <div class="status-item"><span>Wi-Fi real habilitado:</span> <strong id="status-wifi-enabled">false</strong></div>
+          <div class="status-item"><span>Última exploración Wi-Fi:</span> <strong id="status-wifi-last">none</strong></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Real Wi-Fi observations</h2>
+        <div class="button-row">
+          <button id="wifi-scan-btn">Scan Wi-Fi</button>
+          <button id="wifi-clear-btn">Clear Wi-Fi</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>SSID</th>
+                <th>BSSID hash</th>
+                <th>Signal %</th>
+                <th>Channel</th>
+                <th>Radio type</th>
+                <th>Authentication</th>
+              </tr>
+            </thead>
+            <tbody id="wifi-body"></tbody>
+          </table>
         </div>
       </section>
 
