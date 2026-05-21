@@ -9,6 +9,7 @@ from .schemas import (
     ModeRequest,
     StatusResponse,
     WifiObservationSchema,
+    WifiEnvironmentEventSchema,
 )
 from ..simulation import SimulationManager
 
@@ -58,6 +59,11 @@ def get_alerts() -> list[dict]:
 @app.get("/api/wifi/observations", response_model=list[WifiObservationSchema])
 def get_wifi_observations() -> list[dict]:
     return manager.get_wifi_observations()
+
+
+@app.get("/api/wifi/environment-events", response_model=list[WifiEnvironmentEventSchema])
+def get_wifi_environment_events() -> list[dict]:
+    return manager.get_wifi_environment_events()
 
 
 @app.post("/api/wifi/scan", response_model=list[WifiObservationSchema])

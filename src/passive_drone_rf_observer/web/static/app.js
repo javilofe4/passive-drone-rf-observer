@@ -11,6 +11,7 @@ const configInterval = document.getElementById("config-interval");
 const configLogPath = document.getElementById("config-log-path");
 const eventsBody = document.getElementById("events-body");
 const wifiBody = document.getElementById("wifi-body");
+const wifiEnvironmentBody = document.getElementById("wifi-environment-body");
 const alertsList = document.getElementById("alerts-list");
 const startButton = document.getElementById("start-btn");
 const stopButton = document.getElementById("stop-btn");
@@ -71,6 +72,21 @@ function renderWifiObservations(observations) {
   }
 }
 
+function renderWifiEnvironmentEvents(events) {
+  wifiEnvironmentBody.innerHTML = "";
+  for (const event of events.slice(0, 20)) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date(event.timestamp * 1000).toLocaleTimeString()}</td>
+      <td>${event.event_type}</td>
+      <td>${event.score.toFixed(2)}</td>
+      <td>${event.explanation}</td>
+      <td>${event.source}</td>
+    `;
+    wifiEnvironmentBody.appendChild(row);
+  }
+}
+
 async function refreshStatus() {
   const status = await fetchJson("/api/status");
   statusRunning.textContent = status.running ? "running" : "stopped";
@@ -92,6 +108,11 @@ async function refreshWifi() {
   renderWifiObservations(observations);
 }
 
+async function refreshWifiEnvironmentEvents() {
+  const events = await fetchJson("/api/wifi/environment-events");
+  renderWifiEnvironmentEvents(events);
+}
+
 async function refreshEvents() {
   const events = await fetchJson("/api/events");
   renderEvents(events);
@@ -107,6 +128,7 @@ async function refresh() {
     await refreshStatus();
     await refreshEvents();
     await refreshWifi();
+    await refreshWifiEnvironmentEvents();
     await refreshAlerts();
   } catch (error) {
     console.error(error);

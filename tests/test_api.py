@@ -65,3 +65,9 @@ def test_api_wifi_endpoints():
     response_after_clear = client.get("/api/wifi/observations")
     assert response_after_clear.status_code == 200
     assert response_after_clear.json() == []
+
+
+def test_api_wifi_environment_events():
+    response = client.get("/api/wifi/environment-events")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)

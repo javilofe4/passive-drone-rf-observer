@@ -27,6 +27,15 @@ class WifiObservation:
 
 
 @dataclass
+class WifiEnvironmentEvent:
+    timestamp: float
+    event_type: str
+    score: float
+    explanation: str
+    source: str = "windows_wifi_scan"
+
+
+@dataclass
 class ClassificationResult:
     label: str
     score: float

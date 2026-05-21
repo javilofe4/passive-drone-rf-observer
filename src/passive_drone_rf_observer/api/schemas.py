@@ -43,6 +43,21 @@ class WifiObservationSchema(BaseModel):
     source: str
 
 
+class WifiEnvironmentEventSchema(BaseModel):
+    timestamp: float
+    event_type: Literal[
+        "new_network_seen",
+        "network_disappeared",
+        "strong_signal_seen",
+        "signal_changed",
+        "crowded_channel",
+        "unknown",
+    ]
+    score: float
+    explanation: str
+    source: str
+
+
 class StatusResponse(BaseModel):
     running: bool
     mode: str

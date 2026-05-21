@@ -9,6 +9,7 @@ from .agents.alert_agent import evaluate_alert
 from .agents.correlation_agent import Correlator
 from .agents.detector_agent import classify_event
 from .agents.legal_logging_agent import LegalLogger
+from .agents.wifi_environment_agent import analyze_wifi_environment
 from .config import Config, load_config
 from .hardware import get_radio_hardware_profile
 from .models import RFEvent, WifiObservation
@@ -36,6 +37,9 @@ class SimulationManager:
         self.events: Deque[Dict] = deque(maxlen=200)
         self.alerts: Deque[Dict] = deque(maxlen=100)
         self.wifi_observations: Deque[Dict] = deque(maxlen=200)
+        self.wifi_environment_events: Deque[Dict] = deque(maxlen=100)
+        self.wifi_hashes_seen: set[str] = set()
+        self.wifi_last_signals: dict[str, int] = {}
         self.last_wifi_scan_ts: Optional[float] = None
         self.last_alert_level = "none"
         self.risk_level = "none"
@@ -122,9 +126,14 @@ class SimulationManager:
         with self._lock:
             return list(self.wifi_observations)
 
+    def get_wifi_environment_events(self) -> List[Dict]:
+        with self._lock:
+            return list(self.wifi_environment_events)
+
     def clear_wifi_observations(self) -> Dict:
         with self._lock:
             self.wifi_observations.clear()
+            self.wifi_environment_events.clear()
             self.last_wifi_scan_ts = None
         return self.get_status()
 
@@ -133,7 +142,9 @@ class SimulationManager:
             return []
         observations = self.wifi_source.scan()
         entries = []
+        wifi_objs = []
         for observation in observations:
+            wifi_objs.append(observation)
             entry = {
                 "timestamp": observation.timestamp,
                 "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(observation.timestamp)),
@@ -146,8 +157,27 @@ class SimulationManager:
                 "source": observation.source,
             }
             entries.append(entry)
+
+        events, self.wifi_hashes_seen, self.wifi_last_signals = analyze_wifi_environment(
+            wifi_objs,
+            self.wifi_hashes_seen,
+            self.wifi_last_signals,
+        )
         with self._lock:
             self.wifi_observations = deque(entries, maxlen=200)
+            self.wifi_environment_events = deque(
+                [
+                    {
+                        "timestamp": event.timestamp,
+                        "event_type": event.event_type,
+                        "score": event.score,
+                        "explanation": event.explanation,
+                        "source": event.source,
+                    }
+                    for event in events
+                ],
+                maxlen=100,
+            )
             self.last_wifi_scan_ts = time.time()
         return list(self.wifi_observations)
 
