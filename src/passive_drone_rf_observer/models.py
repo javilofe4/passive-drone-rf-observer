@@ -1,5 +1,35 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
+
+
+class AlertLevel(str, Enum):
+    NONE = "none"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class SourceType(str, Enum):
+    SIMULATED_RF = "simulated_rf"
+    WINDOWS_WIFI_SCAN = "windows_wifi_scan"
+    MANUAL_OBSERVATION = "manual_observation"
+
+
+class RfClassification(str, Enum):
+    NOISE = "noise"
+    WIFI_LIKE = "wifi_like"
+    DRONE_LIKE = "drone_like"
+    UNKNOWN = "unknown"
+
+
+class WifiEnvironmentEventType(str, Enum):
+    NEW_NETWORK_SEEN = "new_network_seen"
+    NETWORK_DISAPPEARED = "network_disappeared"
+    STRONG_SIGNAL_SEEN = "strong_signal_seen"
+    SIGNAL_CHANGED = "signal_changed"
+    CROWDED_CHANNEL = "crowded_channel"
+    UNKNOWN = "unknown"
 
 
 @dataclass
@@ -9,7 +39,7 @@ class RFEvent:
     bandwidth_hz: Optional[float]
     rssi_dbm: float
     duration_ms: float
-    source: str
+    source: SourceType
     notes: Optional[str] = None
 
 
@@ -22,22 +52,22 @@ class WifiObservation:
     channel: Optional[int]
     radio_type: Optional[str]
     authentication: Optional[str]
-    source: str = "windows_wifi_scan"
+    source: SourceType = SourceType.WINDOWS_WIFI_SCAN
     notes: Optional[str] = None
 
 
 @dataclass
 class WifiEnvironmentEvent:
     timestamp: float
-    event_type: str
+    event_type: WifiEnvironmentEventType
     score: float
     explanation: str
-    source: str = "windows_wifi_scan"
+    source: SourceType = SourceType.WINDOWS_WIFI_SCAN
 
 
 @dataclass
 class ClassificationResult:
-    label: str
+    label: RfClassification
     score: float
     explanation: str
 
@@ -52,7 +82,7 @@ class AggregatedResult:
 
 @dataclass
 class Alert:
-    level: str  # none, low, medium, high
+    level: AlertLevel
     probability: float
     message: str
-    source: str = "simulated_rf"
+    source: SourceType = SourceType.SIMULATED_RF

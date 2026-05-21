@@ -1,6 +1,14 @@
 from __future__ import annotations
-from typing import Literal, Optional
+from typing import Optional
+from pathlib import Path
 from pydantic import BaseModel
+
+from ..models import (
+    AlertLevel,
+    RfClassification,
+    SourceType,
+    WifiEnvironmentEventType,
+)
 
 
 class ConfigSchema(BaseModel):
@@ -14,10 +22,10 @@ class ConfigSchema(BaseModel):
 
 class AlertSchema(BaseModel):
     timestamp: float
-    level: str
+    level: AlertLevel
     probability: float
     message: str
-    source: str
+    source: SourceType
 
 
 class EventSchema(BaseModel):
@@ -26,10 +34,10 @@ class EventSchema(BaseModel):
     frequency_mhz: float
     rssi_dbm: float
     duration_ms: float
-    label: str
+    label: RfClassification
     score: float
     explanation: str
-    source: str
+    source: SourceType
 
 
 class WifiObservationSchema(BaseModel):
@@ -41,22 +49,15 @@ class WifiObservationSchema(BaseModel):
     channel: Optional[int]
     radio_type: Optional[str]
     authentication: Optional[str]
-    source: str
+    source: SourceType
 
 
 class WifiEnvironmentEventSchema(BaseModel):
     timestamp: float
-    event_type: Literal[
-        "new_network_seen",
-        "network_disappeared",
-        "strong_signal_seen",
-        "signal_changed",
-        "crowded_channel",
-        "unknown",
-    ]
+    event_type: WifiEnvironmentEventType
     score: float
     explanation: str
-    source: str
+    source: SourceType
 
 
 class StatusResponse(BaseModel):
@@ -73,4 +74,4 @@ class StatusResponse(BaseModel):
 
 
 class ModeRequest(BaseModel):
-    mode: Literal["quiet", "normal", "noisy", "drone_activity"]
+    mode: str

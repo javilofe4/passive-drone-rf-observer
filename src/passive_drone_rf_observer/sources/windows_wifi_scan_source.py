@@ -2,9 +2,10 @@ from __future__ import annotations
 import hashlib
 import platform
 import subprocess
-from typing import List, Optional
+import time
+from typing import Dict, List, Optional
 
-from ..models import WifiObservation
+from ..models import SourceType, WifiObservation
 
 
 class WindowsWifiScanSource:
@@ -12,8 +13,15 @@ class WindowsWifiScanSource:
         self.salt = salt
 
     def scan(self) -> List[WifiObservation]:
-        if platform.system().lower() != "windows":
+        output = self._run_netsh()
+        if not output:
             return []
+        raw_observations = self._parse_netsh_output(output)
+        return [self._normalize_observation(raw) for raw in raw_observations]
+
+    def _run_netsh(self) -> Optional[str]:
+        if platform.system().lower() != "windows":
+            return None
 
         try:
             result = subprocess.run(
@@ -24,15 +32,15 @@ class WindowsWifiScanSource:
                 timeout=15,
             )
         except (subprocess.SubprocessError, OSError):
-            return []
+            return None
 
         if result.returncode != 0 or not result.stdout:
-            return []
+            return None
 
-        return self._parse_netsh_output(result.stdout)
+        return result.stdout
 
-    def _parse_netsh_output(self, output: str) -> List[WifiObservation]:
-        observations: List[WifiObservation] = []
+    def _parse_netsh_output(self, output: str) -> List[Dict[str, Optional[str]]]:
+        observations: List[Dict[str, Optional[str]]] = []
         current_ssid: Optional[str] = None
         current_bssid: Optional[str] = None
         current_signal: Optional[int] = None
@@ -44,17 +52,15 @@ class WindowsWifiScanSource:
             nonlocal current_bssid, current_signal, current_channel, current_radio_type, current_auth
             if current_ssid is None or current_bssid is None:
                 return
-            bssid_hash = hashlib.sha256((current_bssid.lower() + self.salt).encode("utf-8")).hexdigest()
             observations.append(
-                WifiObservation(
-                    timestamp=__import__("time").time(),
-                    ssid=current_ssid,
-                    bssid_hash=bssid_hash,
-                    signal_percent=current_signal or 0,
-                    channel=current_channel,
-                    radio_type=current_radio_type,
-                    authentication=current_auth,
-                )
+                {
+                    "ssid": current_ssid,
+                    "bssid": current_bssid,
+                    "signal_percent": current_signal,
+                    "channel": current_channel,
+                    "radio_type": current_radio_type,
+                    "authentication": current_auth,
+                }
             )
             current_bssid = None
             current_signal = None
@@ -95,3 +101,18 @@ class WindowsWifiScanSource:
 
         flush_bssid()
         return observations
+
+    def _hash_bssid(self, bssid: str) -> str:
+        return hashlib.sha256((bssid.lower() + self.salt).encode("utf-8")).hexdigest()
+
+    def _normalize_observation(self, raw: Dict[str, Optional[str]]) -> WifiObservation:
+        return WifiObservation(
+            timestamp=time.time(),
+            ssid=raw.get("ssid", ""),
+            bssid_hash=self._hash_bssid(raw.get("bssid", "")),
+            signal_percent=raw.get("signal_percent") or 0,
+            channel=raw.get("channel"),
+            radio_type=raw.get("radio_type"),
+            authentication=raw.get("authentication"),
+            source=SourceType.WINDOWS_WIFI_SCAN,
+        )

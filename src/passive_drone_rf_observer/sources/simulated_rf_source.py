@@ -2,7 +2,7 @@ import random
 import time
 from typing import Iterator
 from .base import RFSource
-from ..models import RFEvent
+from ..models import RFEvent, SourceType
 
 
 class SimulatedRFSource(RFSource):
@@ -55,6 +55,6 @@ class SimulatedRFSource(RFSource):
                 bandwidth_hz=bw,
                 rssi_dbm=rssi,
                 duration_ms=dur,
-                source=self.source_name,
+                source=SourceType.SIMULATED_RF,
                 notes=notes,
             )

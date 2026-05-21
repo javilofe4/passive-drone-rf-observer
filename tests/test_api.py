@@ -1,12 +1,32 @@
 import time
 from fastapi.testclient import TestClient
-from passive_drone_rf_observer.api.app import app, manager
+from passive_drone_rf_observer.api.app import create_app
+from passive_drone_rf_observer.config import Config
 
 
-client = TestClient(app)
+def make_test_client() -> TestClient:
+    config = Config(
+        simulation_duration_s=1,
+        event_interval_s=0.01,
+        correlation_window_s=1.0,
+        min_events_for_alert=2,
+        log_db_path="test_logs.db",
+        rx_only=True,
+        enable_sdr=False,
+        enable_remote_id=False,
+        enable_wifi_monitor=False,
+        enable_hackrf=False,
+        enable_windows_wifi_scan=False,
+        wifi_scan_interval_s=5.0,
+        wifi_bssid_salt="test-salt",
+        hardware_profile="simulated",
+    )
+    app = create_app(config)
+    return TestClient(app)
 
 
 def test_api_status_returns_status():
+    client = make_test_client()
     response = client.get("/api/status")
     assert response.status_code == 200
     assert "running" in response.json()
@@ -14,12 +34,12 @@ def test_api_status_returns_status():
 
 
 def test_api_simulation_start_stop():
-    manager.stop()
+    client = make_test_client()
     response = client.post("/api/simulation/start")
     assert response.status_code == 200
     assert response.json()["running"] is True
 
-    time.sleep(0.2)
+    time.sleep(0.05)
 
     response = client.post("/api/simulation/stop")
     assert response.status_code == 200
@@ -27,13 +47,12 @@ def test_api_simulation_start_stop():
 
 
 def test_api_events_and_clear():
-    manager.stop()
+    client = make_test_client()
     client.post("/api/simulation/start")
-    time.sleep(0.2)
+    time.sleep(0.05)
     response = client.get("/api/events")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
-    assert len(response.json()) >= 0
 
     clear_response = client.post("/api/events/clear")
     assert clear_response.status_code == 200
@@ -44,13 +63,14 @@ def test_api_events_and_clear():
 
 
 def test_api_simulation_mode_change():
+    client = make_test_client()
     response = client.post("/api/simulation/mode", json={"mode": "drone_activity"})
     assert response.status_code == 200
     assert response.json()["mode"] == "drone_activity"
-    manager.set_mode("normal")
 
 
 def test_api_wifi_endpoints():
+    client = make_test_client()
     response = client.get("/api/wifi/observations")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
@@ -68,6 +88,7 @@ def test_api_wifi_endpoints():
 
 
 def test_api_wifi_environment_events():
+    client = make_test_client()
     response = client.get("/api/wifi/environment-events")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
