@@ -33,10 +33,15 @@ class SQLiteStore:
                 ts REAL,
                 level TEXT,
                 probability REAL,
-                message TEXT
+                message TEXT,
+                source TEXT
             )
             """
         )
+        cur.execute("PRAGMA table_info(alerts)")
+        columns = {row[1] for row in cur.fetchall()}
+        if "source" not in columns:
+            cur.execute("ALTER TABLE alerts ADD COLUMN source TEXT")
         self._conn.commit()
 
     def log_event(self, event: RFEvent, label: str):
@@ -50,7 +55,7 @@ class SQLiteStore:
     def log_alert(self, alert: Alert):
         cur = self._conn.cursor()
         cur.execute(
-            "INSERT INTO alerts (ts, level, probability, message) VALUES (?, ?, ?, ?)",
-            (__import__("time").time(), alert.level, alert.probability, alert.message),
+            "INSERT INTO alerts (ts, level, probability, message, source) VALUES (?, ?, ?, ?, ?)",
+            (__import__("time").time(), alert.level, alert.probability, alert.message, getattr(alert, "source", "simulated_rf")),
         )
         self._conn.commit()

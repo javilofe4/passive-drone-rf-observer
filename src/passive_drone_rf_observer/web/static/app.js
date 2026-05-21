@@ -50,7 +50,7 @@ function renderAlerts(alerts) {
   for (const alert of alerts.slice(0, 10)) {
     const card = document.createElement("div");
     card.className = `alert-card alert-${alert.level}`;
-    card.innerHTML = `<strong>${alert.level.toUpperCase()}</strong> - ${alert.message} <span>${new Date(alert.timestamp * 1000).toLocaleTimeString()}</span>`;
+    card.innerHTML = `<strong>${alert.level.toUpperCase()}</strong> - ${alert.message} <span>${new Date(alert.timestamp * 1000).toLocaleTimeString()}</span><small>Source: ${alert.source}</small>`;
     alertsList.appendChild(card);
   }
 }

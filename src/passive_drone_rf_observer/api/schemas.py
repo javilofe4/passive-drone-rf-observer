@@ -17,6 +17,7 @@ class AlertSchema(BaseModel):
     level: str
     probability: float
     message: str
+    source: str
 
 
 class EventSchema(BaseModel):

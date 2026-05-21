@@ -55,3 +55,4 @@ class Alert:
     level: str  # none, low, medium, high
     probability: float
     message: str
+    source: str = "simulated_rf"

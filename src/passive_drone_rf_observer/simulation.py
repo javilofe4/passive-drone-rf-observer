@@ -5,7 +5,7 @@ from collections import deque
 from pathlib import Path
 from typing import Deque, Dict, List, Optional
 
-from .agents.alert_agent import evaluate_alert
+from .agents.alert_agent import evaluate_alert, evaluate_wifi_alert
 from .agents.correlation_agent import Correlator
 from .agents.detector_agent import classify_event
 from .agents.legal_logging_agent import LegalLogger
@@ -179,6 +179,14 @@ class SimulationManager:
                 maxlen=100,
             )
             self.last_wifi_scan_ts = time.time()
+
+        wifi_alert = evaluate_wifi_alert(events)
+        if wifi_alert and wifi_alert.level != "none":
+            self.logger.record_alert(wifi_alert)
+            self._append_alert(wifi_alert)
+            self.last_alert_level = wifi_alert.level
+            self.risk_level = wifi_alert.level
+
         return list(self.wifi_observations)
 
     def _run_loop(self) -> None:
@@ -233,6 +241,7 @@ class SimulationManager:
             "level": alert.level,
             "probability": alert.probability,
             "message": alert.message,
+            "source": getattr(alert, "source", "simulated_rf"),
         }
         with self._lock:
             self.alerts.appendleft(entry)
