@@ -1,0 +1,35 @@
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class RFEvent:
+    timestamp: float
+    frequency_hz: float
+    bandwidth_hz: Optional[float]
+    rssi_dbm: float
+    duration_ms: float
+    source: str
+    notes: Optional[str] = None
+
+
+@dataclass
+class ClassificationResult:
+    label: str
+    score: float
+    explanation: str
+
+
+@dataclass
+class AggregatedResult:
+    start_ts: float
+    end_ts: float
+    probability: float
+    contributing_events: int
+
+
+@dataclass
+class Alert:
+    level: str  # none, low, medium, high
+    probability: float
+    message: str

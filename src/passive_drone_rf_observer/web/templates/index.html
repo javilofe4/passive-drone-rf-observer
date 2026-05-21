@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Passive Drone RF Observer</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header>
+        <h1>Passive Drone RF Observer</h1>
+        <p>Interfaz local de prueba para observar eventos RF simulados.</p>
+      </header>
+
+      <section class="grid layout-columns">
+        <div class="card">
+          <h2>Estado del sistema</h2>
+          <div class="status-item"><span>Estado:</span> <strong id="status-running">stopped</strong></div>
+          <div class="status-item"><span>Eventos recibidos:</span> <strong id="status-events">0</strong></div>
+          <div class="status-item"><span>Drone-like:</span> <strong id="status-drone-like">0</strong></div>
+          <div class="status-item"><span>Última alerta:</span> <strong id="status-last-alert">none</strong></div>
+          <div class="status-item"><span>Nivel de riesgo:</span> <strong id="status-risk">none</strong></div>
+        </div>
+
+        <div class="card">
+          <h2>Controles</h2>
+          <div class="button-row">
+            <button id="start-btn">Start simulation</button>
+            <button id="stop-btn">Stop simulation</button>
+          </div>
+          <div class="button-row">
+            <button id="clear-btn">Clear events</button>
+          </div>
+          <label class="control-label">
+            Modo de simulación
+            <select id="mode-select">
+              <option value="quiet">quiet</option>
+              <option value="normal" selected>normal</option>
+              <option value="noisy">noisy</option>
+              <option value="drone_activity">drone_activity</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="card">
+          <h2>Configuración</h2>
+          <div class="status-item"><span>Umbral detección:</span> <strong id="config-threshold">-</strong></div>
+          <div class="status-item"><span>Ventana correlación:</span> <strong id="config-window">-</strong></div>
+          <div class="status-item"><span>Intervalo simulación:</span> <strong id="config-interval">-</strong></div>
+          <div class="status-item"><span>Ruta logs:</span> <strong id="config-log-path">-</strong></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Eventos recientes</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Freq (MHz)</th>
+                <th>RSSI (dBm)</th>
+                <th>Duración (ms)</th>
+                <th>Clasificación</th>
+                <th>Score</th>
+                <th>Explicación</th>
+              </tr>
+            </thead>
+            <tbody id="events-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Alertas recientes</h2>
+        <div id="alerts-list" class="alerts-list"></div>
+      </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

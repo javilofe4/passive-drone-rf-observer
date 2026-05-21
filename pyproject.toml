@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "passive-drone-rf-observer"
+version = "0.1.0"
+description = "Passive RF observer for drone-like activity (simulator first)"
+requires-python = ">=3.11"
+authors = [ { name = "Passive Drone RF Observer", email = "noreply@example.com" } ]
+readme = "README.md"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
